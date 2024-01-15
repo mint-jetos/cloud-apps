@@ -5,7 +5,7 @@ RUN apk add --no-cache git bash && \
     git clone https://github.com/novnc/noVNC.git && \
     git clone https://github.com/novnc/websockify.git && \
     cd noVNC && \
-    git checkout $(git describe --tags `git rev-list --tags --max-count=1`) && \
+    git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
 
 # Final stage
 FROM alpine:latest
@@ -22,11 +22,11 @@ RUN ln -s /usr/local/novnc/index.html /usr/local/novnc/vnc.html
 RUN apk add --no-cache openbox tigervnc supervisor su-exec  && \
     mkdir -p /usr/share/desktop-directories
 
-RUN apk add --no-cache rsync ttf-droid
+RUN apk add --no-cache rsync ttf-droid lxterminal
 RUN apk add --no-cache thunderbird
 
-COPY menu.xml /etc/xdg/openbox/
-COPY supervisord.conf /etc/
+COPY ./src/alpine/install/thunderbird/menu.xml /etc/xdg/openbox/
+COPY ./src/alpine/install/thunderbird/supervisord.conf /etc/
 EXPOSE 6080
 
 ENV HOME=/thunderbird
