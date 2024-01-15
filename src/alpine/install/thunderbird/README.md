@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html>
    <head>
-      <title>Supervisord Configuration Explanation</title>
-      <style>
-         body {
-         font-family: Arial, sans-serif;
-         }
-         h1, h2 {
-         color: #333;
-         }
-         pre {
-         background-color: #f0f0f0;
-         padding: 10px;
-         }
-      </style>
    </head>
    <body>
       <h1>Supervisord Configuration Explanation</h1>
