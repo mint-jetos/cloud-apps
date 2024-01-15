@@ -1,0 +1,21 @@
+version: '3'
+services:
+  thunderbird:
+    build:
+      context: .
+      dockerfile: mint-dockerfile-thunderbird
+    image: mint-jetos/thunderbird:latest
+    container_name: mint-jetos-thunderbird
+    ports:
+      - "9902:8080"
+    restart: always
+    networks:
+      - mint-cloud
+
+networks:
+  mint-cloud:
+    external: true
+
+# docker network create mint-cloud
+# docker-compose -f mint-docker-compose-thunderbird.yml up -d --build
+# docker build   -f mint-dockerfile-thunderbird -t mint-jetos/thunderbird:latest .

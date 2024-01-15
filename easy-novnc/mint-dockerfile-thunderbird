@@ -1,0 +1,38 @@
+FROM golang:1.14-alpine AS easy-novnc-build
+WORKDIR /src
+RUN apk add --no-cache git && \
+    go mod init build && \
+    go get github.com/geek1011/easy-novnc@v1.1.0 && \
+    go build -o /bin/easy-novnc github.com/geek1011/easy-novnc
+
+FROM alpine:latest
+
+RUN apk add --no-cache openbox tigervnc supervisor su-exec && \
+    mkdir -p /usr/share/desktop-directories
+
+RUN apk add --no-cache rsync ttf-droid lxterminal
+RUN apk add --no-cache thunderbird
+
+COPY --from=easy-novnc-build /bin/easy-novnc /usr/local/bin/
+COPY ./src/alpine/install/thunderbird/menu.xml /etc/xdg/openbox/
+COPY ./src/alpine/install/thunderbird/supervisord.conf /etc/
+EXPOSE 8080
+
+ENV HOME=/thunderbird
+ENV USER="thunderbird"
+ENV UID=1000
+ENV GID=1000
+
+RUN addgroup -g 1000 -S $USER && \
+    adduser -S -D -h $HOME -G $USER -u $UID -s /bin/sh $USER && \
+    chown -R $USER:$USER $HOME && \
+    ulimit -n 2048
+
+RUN mkdir -p $HOME/.vnc && \
+    (echo "password"; echo "password") | vncpasswd $HOME/.vnc/passwd && \
+    chown -R $USER:$USER $HOME/.vnc && \
+    chmod 600 $HOME/.vnc/passwd
+
+VOLUME $HOME
+
+CMD ["sh", "-c", "chown $USER:$USER $HOME /dev/stdout && exec su-exec $USER supervisord"]
