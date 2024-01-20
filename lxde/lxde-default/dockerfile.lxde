@@ -1,0 +1,66 @@
+# qemu helper for arm build
+FROM ubuntu:latest as system
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt update \
+    && apt install -y --no-install-recommends software-properties-common \
+    && apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        supervisor sudo  \
+        dbus-x11 x11-utils alsa-utils \
+        mesa-utils libgl1-mesa-dri \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt update \
+    && DEBIAN_FRONTEND=noninteractive apt install -y -f --no-install-recommends --allow-unauthenticated \
+        xvfb x11vnc  \
+        fonts-ubuntu ttf-wqy-zenhei  \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# tini for subreap
+ARG TINI_VERSION=v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-arm64 /bin/tini
+RUN chmod +x /bin/tini
+
+RUN apt-get update && apt-get install -y ca-certificates curl gnupg
+#COPY web /src/web
+FROM ubuntu:latest AS novnc-build
+WORKDIR /src
+RUN apt update && apt install -y git bash && \
+    git clone https://github.com/novnc/noVNC.git && \
+    git clone https://github.com/novnc/websockify.git && \
+    cd noVNC && \
+    git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+
+FROM system
+LABEL maintainer="fcwu.tw@gmail.com"
+
+#COPY startup.sh /startup.sh
+#COPY xvfb.sh /usr/local/bin/xvfb.sh
+
+COPY --from=novnc-build /src/noVNC      /usr/local/lib/web/frontend/static/novnc
+COPY --from=novnc-build /src/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify
+COPY --from=novnc-build /src/websockify /usr/local/lib/web/frontend/static/websockify
+RUN chmod +x /usr/local/lib/web/frontend/static/websockify/run
+RUN chmod +x /usr/local/lib/web/frontend/static/novnc/utils/websockify/run
+
+COPY supervisord.conf  /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 6080
+WORKDIR /root
+ENV USER="root"
+ENV HOME=/root \
+    SHELL=/bin/bash
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
