@@ -29,11 +29,6 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# tini for subreap
-ARG TINI_VERSION=v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-arm64 /bin/tini
-RUN chmod +x /bin/tini
-
 RUN apt-get update && apt-get install -y ca-certificates curl gnupg
 #COPY web /src/web
 FROM ubuntu:latest AS novnc-build
