@@ -6,7 +6,6 @@ RUN apt update && apt install -y --no-install-recommends \
     xvfb x11vnc fonts-ubuntu ttf-wqy-zenhei \
     lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme
 
-RUN useradd -m -s /bin/bash ubuntu  # Use useradd for user creation
 
 FROM system AS novnc-build
 
@@ -32,5 +31,12 @@ ENV DISPLAY :1
 ENV USER ubuntu
 ENV HOME /home/$USER
 WORKDIR $HOME
+
+RUN useradd -m -s /bin/bash $USER
+# Set password for ubuntu user (using double quotes for variable expansion)
+RUN echo "$USER:password" | chpasswd
+# Grant sudo privileges to ubuntu user
+RUN usermod -aG sudo $USER
+RUN chown -R $USER:$USER $HOME /usr/share/applications 
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
