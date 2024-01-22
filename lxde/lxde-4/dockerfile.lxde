@@ -1,0 +1,37 @@
+FROM ubuntu:focal AS system
+
+RUN apt update && apt install -y --no-install-recommends \
+    supervisor sudo dbus-x11 x11-utils alsa-utils \
+    mesa-utils libgl1-mesa-dri \
+    xvfb x11vnc fonts-ubuntu ttf-wqy-zenhei \
+    lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme
+
+
+FROM system AS novnc-build
+
+WORKDIR /src
+RUN apt update && apt install -y git bash && \
+    git clone https://github.com/novnc/noVNC.git && \
+    git clone https://github.com/novnc/websockify.git && \
+    cd noVNC && \
+    git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+
+FROM system
+
+COPY --from=novnc-build /src/noVNC /usr/local/lib/web/frontend/static/novnc
+COPY --from=novnc-build /src/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify
+COPY --from=novnc-build /src/websockify /usr/local/lib/web/frontend/static/websockify
+RUN chmod +x /usr/local/lib/web/frontend/static/websockify/run
+RUN chmod +x /usr/local/lib/web/frontend/static/novnc/utils/websockify/run
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+EXPOSE 6080
+ENV DISPLAY :1
+ENV USER ubuntu
+ENV HOME /home/$USER
+WORKDIR $HOME
+
+ENTRYPOINT ["/startup.sh"]
