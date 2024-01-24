@@ -12,4 +12,5 @@ services:
       - VNC_PASSWORD=pwd@vnc
       - USER=ubuntu
       - PASSWORD=pwd@login
+      - RESOLUTION=1366x651
     restart: always

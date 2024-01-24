@@ -8,8 +8,12 @@ if [ -n "$VNC_PASSWORD" ]; then
     export VNC_PASSWORD=
 fi
 
+echo '#!/bin/sh' | sudo tee /usr/local/bin/xvfb.sh
+echo 'exec /usr/bin/Xvfb :1 -screen 0 1366x651x24' | sudo tee -a /usr/local/bin/xvfb.sh
+sudo chmod +x /usr/local/bin/xvfb.sh
 if [ -n "$RESOLUTION" ]; then
-    sed -i "s/1024x768/$RESOLUTION/" /usr/local/bin/xvfb.sh
+    sed -i "s/1366x651/$RESOLUTION/" /usr/local/bin/xvfb.sh
+    echo "  Set custom screen resolution to $RESOLUTION x24"
 fi
 
 USER=${USER:-root}
