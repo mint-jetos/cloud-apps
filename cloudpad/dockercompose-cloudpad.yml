@@ -1,0 +1,17 @@
+version: '3.9'
+services:
+  cloudpad:
+    image: mintjetos/cloudpad
+    container_name: mintjetos-cloudpad-con
+    build:
+      context: .
+      dockerfile:  dockerfile-cloudpad
+    ports:
+      - 9906:6080
+    #environment:
+    #  - VNC_PASSWORD=pwd@vnc
+    #  - USER=ubuntu
+    #  - PASSWORD=pwd@login
+    restart: always
+
+# docker-compose -f dockercompose-cloudpad.yml up -d --build

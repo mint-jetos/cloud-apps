@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/png" sizes="192x192" href="static/icon/postit.jpeg">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/icon/postit.jpeg">
+    <link rel="icon" type="image/png" sizes="96x96" href="static/icon/postit.jpeg">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/icon/postit.jpeg">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="static/icon/postit.jpeg">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>Cloudpad</title>
+    <meta name="description" content="Cloudpad is a virtual notepad on cloud.">
+
+    <link rel="stylesheet" href="static/style.css">
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->
+    <!--<link id="dynamic-style" rel="stylesheet" href="> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
+</head>
+
+<body>
+    <div id="header">
+        <a href="#" onclick="refreshPage(); return false;">
+            <div id="logo">Cloudpad</div>
+        </a>
+        <br>
+        Notepad on Cloud.
+    </div>
+    <div class="content">
+
+        <div id="links-container">
+            <div id="link-left">
+                <div>Link to this Cloudpad</div>
+                <div id="link-container"></div>
+                <br><br>
+                <a href="javascript:void(0);" onclick="redirectToBaseUrl()" style="font-size: 18px;">Create New Cloudpad</a>
+            </div>
+            <div id="qr-container">
+                <div>Scan this QR code</div>
+                <div id="qrcode"></div>
+            </div>
+        </div>
+
+        <div class="container">
+          <button type="button" class="button" id="cloud-save-btn">Save to Cloud</button>
+        </div>
+
+        <div id="data-container">
+            <form id="blog-form">
+                <textarea id="data"></textarea>&nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="submit" id="save-btn">Add</button>
+            </form>
+            <div id="text-areas"></div>
+        </div>
+    </div>
+
+
+    <!-- Hidden div to store the notes -->
+    <div id="hidden-div" style="display: none;"></div>
+
+    <script type="text/javascript" src="static/script.js"></script>
+
+</body>
+
+</html>

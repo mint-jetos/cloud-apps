@@ -1,0 +1,37 @@
+# Use multi-stage build with python:3.9-alpine as base
+FROM python:3.9-alpine AS builder
+
+WORKDIR /app
+
+# Define a .dockerignore file to exclude unnecessary files
+#COPY .dockerignore .
+
+# COPY only requirements.txt, avoiding entire virtual environment
+COPY requirements.txt .
+
+# Install dependencies with no cache
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Build your application (adjust depending on your build process)
+COPY . .
+#RUN python setup.py install
+
+# Create the final image without unnecessary build artifacts
+FROM python:3.9-alpine
+
+WORKDIR /app
+
+# Copy only built artifacts from the builder stage
+COPY --from=builder /app/ /app
+
+# Install gunicorn with no cache
+RUN pip install --no-cache-dir Flask gunicorn
+
+# Set environment variables
+ENV FLASK_ROUTE=/cloudpad/
+
+# Expose gunicorn port
+EXPOSE 6080
+
+# Start gunicorn
+CMD gunicorn -w 4 -b 0.0.0.0:6080 app:app
