@@ -31,7 +31,8 @@ def restart_xvfb():
     logger.debug("Restarting xvfb")
     print("Restarting xvfb")
     try:
-        subprocess.run(['supervisorctl', 'restart', 'x:xvfb'], check=True)
+        ### subprocess.run(['supervisorctl', 'restart', 'x:xvfb'], check=True)
+        subprocess.run(['supervisorctl', 'restart', 'all'], check=True)
         logger.info("Xvfb restarted successfully")
         print("Xvfb restarted successfully")
     except subprocess.CalledProcessError as e:
