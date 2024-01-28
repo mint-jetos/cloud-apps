@@ -1,8 +1,8 @@
 version: '3.9'
 services:
   lxde:
-    image: mintjetos/lxde8
-    container_name: mintjetos-lxde8-con
+    image: mintjetos/lxde9
+    container_name: lxde9-con
     build:
       context: .
       dockerfile:  dockerfile.lxde 
