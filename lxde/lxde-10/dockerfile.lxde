@@ -1,0 +1,55 @@
+# Stage 1: System dependencies (Ubuntu)
+FROM ubuntu:focal AS system
+
+RUN apt update && apt install -y --no-install-recommends \
+    supervisor sudo dbus-x11 x11-utils alsa-utils \
+    mesa-utils libgl1-mesa-dri \
+    xvfb x11vnc fonts-ubuntu ttf-wqy-zenhei \
+    lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme \
+    python3-pip && pip3 install flask  && pip3 install flask-cors && pip3 install gunicorn
+
+# Stage 2: noVNC setup
+FROM system AS novnc-build
+
+WORKDIR /src
+RUN apt update && apt install -y git bash && \
+    git clone https://github.com/novnc/noVNC.git && \
+    git clone https://github.com/novnc/websockify.git && \
+    cd noVNC && \
+    git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+
+# Stage 3: Python dependencies (Alpine)
+FROM python:3.9-alpine AS builder
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app.py .
+
+# Stage 4: Final image (Ubuntu)
+FROM system
+
+ENV DISPLAY :1
+ENV USER ubuntu
+ENV HOME /home/$USER
+WORKDIR $HOME
+
+# Copy noVNC files
+COPY --from=novnc-build /src/noVNC $HOME
+COPY --from=novnc-build /src/websockify $HOME/utils/websockify
+RUN chmod +x $HOME/utils/websockify/run
+
+# Copy remaining files and configuration
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY app.py $HOME/app.py
+COPY resize.js /tmp/resize.js
+RUN cat /tmp/resize.js >> $HOME/app/ui.js
+
+COPY xvfb.sh /usr/local/bin/xvfb.sh
+RUN chmod +x /usr/local/bin/xvfb.sh
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+EXPOSE 6079 6080
+
+ENTRYPOINT ["/startup.sh"]
