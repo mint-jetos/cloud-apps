@@ -1,0 +1,55 @@
+# Stage 1: System dependencies (Ubuntu)
+FROM ubuntu:focal AS system
+
+RUN apt update && apt install -y --no-install-recommends \
+    dbus-x11 x11-utils alsa-utils \
+    mesa-utils libgl1-mesa-dri \
+    xvfb x11vnc fonts-ubuntu ttf-wqy-zenhei \
+    lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme xz-utils
+
+ARG S6_OVERLAY_VERSION=3.1.6.2
+ARG S6_OVERLAY_ARCH=aarch64
+# add s6 overlay
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
+# add s6 optional symlinks
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/syslogd-overlay-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/syslogd-overlay-noarch.tar.xz
+
+# Stage 2: noVNC setup
+FROM system AS novnc-build
+
+WORKDIR /src
+RUN apt update && apt install -y git bash && \
+    git clone https://github.com/novnc/noVNC.git && \
+    git clone https://github.com/novnc/websockify.git && \
+    cd noVNC && \
+    git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+
+# Stage 4: Final image (Ubuntu)
+FROM system
+
+ENV DISPLAY :1
+ENV USER ubuntu
+ENV HOME /home/$USER
+WORKDIR $HOME
+
+# Copy noVNC files
+COPY --from=novnc-build /src/noVNC $HOME
+COPY --from=novnc-build /src/websockify $HOME/utils/websockify
+RUN chmod +x $HOME/utils/websockify/run
+
+# Copies S6 Overlay config into the container
+COPY /etc/s6-overlay /etc/s6-overlay
+RUN  chmod 755 /etc/s6-overlay
+RUN  chmod +x  /etc/s6-overlay/s6-rc.d/*/run
+
+EXPOSE 6080
+
+ENTRYPOINT ["/init"]

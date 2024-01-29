@@ -1,0 +1,3 @@
+#!/bin/sh
+export DISPLAY=":1" HOME="/root" USER="root"
+exec /usr/bin/openbox
