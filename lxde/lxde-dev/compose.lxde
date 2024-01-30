@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  lxde:
+    image: mintjetos/lxde11
+    container_name: lxde11-con
+    build:
+      context: .
+      dockerfile: dockerfile.lxde 
+    ports:
+      - 9910:6080
+    environment:
+      - RESOLUTION=1364x651
+    #  - VNC_PASSWORD=pwd@vnc
+      - USER=ubuntu
+      - PASSWORD=pwd@login
+    restart: always

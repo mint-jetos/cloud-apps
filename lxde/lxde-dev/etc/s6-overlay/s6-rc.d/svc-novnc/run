@@ -1,0 +1,2 @@
+#!/usr/bin/with-contenv bash
+exec /var/www/html/utils/novnc_proxy --vnc localhost:5900 --listen 6080
