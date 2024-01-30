@@ -1,0 +1,40 @@
+#!/usr/bin/with-contenv bash
+
+HOME=/root
+USER=${USER:-root}
+if [ "$USER" != "root" ]; then
+    echo "* enable custom user: $USER" $PASSWORD
+    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo $USER
+    if [ -z "$PASSWORD" ]; then
+        echo "  set default password to \"ubuntu\""
+        PASSWORD=ubuntu
+    fi
+    HOME=/home/$USER
+    echo "$USER:$PASSWORD" | chpasswd
+    chown -R $USER:$USER ${HOME}
+fi
+
+echo "HOME=$HOME" >  /root/.env_data
+echo "USER=$USER" >> /root/.env_data
+
+cat << EOF > /usr/local/bin/x11vnc.sh
+source /root/.env_data
+exec x11vnc -ncache 0 -noxdamage -noscr -display :1 -xkb -forever -shared -repeat -capslock -nowf -cursor arrow -noxfixes
+EOF
+if [ -n "$VNC_PASSWORD" ]; then
+   echo -n "$VNC_PASSWORD" > $HOME/.password1
+   x11vnc -storepasswd $(cat $HOME/.password1) $HOME/.password2
+   chmod 400 $HOME/.password*
+   sed -i 's|^exec x11vnc.*|& -rfbauth $HOME/.password2|' /usr/local/bin/x11vnc.sh
+   export VNC_PASSWORD=
+fi
+chmod +x /usr/local/bin/x11vnc.sh
+
+cat << EOF > /usr/local/bin/xvfb.sh
+source /root/.env_data
+exec /usr/bin/Xvfb :1 -screen 0 1364x651x24
+EOF
+if [ -n "$RESOLUTION" ]; then
+    sed -i "s/1364x651/$RESOLUTION/" /usr/local/bin/xvfb.sh
+fi
+chmod +x /usr/local/bin/xvfb.sh
